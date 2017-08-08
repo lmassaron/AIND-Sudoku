@@ -54,17 +54,17 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    line = '\n +' + ('-' * 11* 3 + '+')*3 + '\n'
+    line = '\n+' + ('-' * 11* 3 + '+')*3 + '\n'
     for r, row in enumerate(rows):
         for c, column in enumerate(cols):
             if c % 3 == 0:
-                line += ' | '
+                line += '  ' * (1 if c>0 else 0) + '| '
             vals = values[row+column]
             line += ' ' + ' '*(9-len(vals)) + vals
         if (r+1) % 3 == 0:
-            line += ' |\n+' + ('-' * 11 * 3 + '+')*3 + '\n'
+            line += '  |\n+' + ('-' * 11 * 3 + '+')*3 + '\n'
         else:
-            line += ' |\n'
+            line += '  |\n'
 
     print(line)
     return None
