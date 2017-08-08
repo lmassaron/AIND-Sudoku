@@ -54,7 +54,7 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    line = '\n' + ('-' * 11 * 3 + '+')*3 + '\n'
+    line = '\n +' + ('-' * 11* 3 + '+')*3 + '\n'
     for r, row in enumerate(rows):
         for c, column in enumerate(cols):
             if c % 3 == 0:
@@ -62,7 +62,7 @@ def display(values):
             vals = values[row+column]
             line += ' ' + ' '*(9-len(vals)) + vals
         if (r+1) % 3 == 0:
-            line += ' |\n' + ('-' * 11 * 3 + '+')*3 + '\n'
+            line += ' |\n+' + ('-' * 11 * 3 + '+')*3 + '\n'
         else:
             line += ' |\n'
 
@@ -100,10 +100,23 @@ def solve(grid):
     peers = dict((s, set(sum(units[s], [])) - set([s]))
                  for s in squares)
 
+    values = grid_values(diag_sudoku_grid)
+    display(values)
+
+    # Constrained programming
+
+    for r, row in enumerate(rows):
+        for c, column in enumerate(cols):
+            cell = row+column
+            if len(values[cell])==1:
+                print ("Eliminating",values[cell],"found in",cell)
+                for peer in peers[cell]:
+                    values[peer] = ''.join([key for key in values[peer] if key!=values[cell]])
+
+    return values
 
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
-    display(grid_values(diag_sudoku_grid))
     display(solve(diag_sudoku_grid))
 
     try:
