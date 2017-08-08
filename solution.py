@@ -1,16 +1,9 @@
 assignments = []
 
-digits   = '123456789'
-rows     = 'ABCDEFGHI'
-cols     = digits
-squares  = cross(rows, cols)
-unitlist = ([cross(rows, c) for c in cols] +
-            [cross(r, cols) for r in rows] +
-            [cross(rs, cs) for rs in ('ABC','DEF','GHI') for cs in ('123','456','789')])
-units = dict((s, [u for u in unitlist if s in u])
-             for s in squares)
-peers = dict((s, set(sum(units[s],[]))-set([s]))
-             for s in squares)
+digits = '123456789'
+rows = 'ABCDEFGHI'
+cols = digits
+lenght_side = len(cols)
 
 def assign_value(values, box, value):
     """
@@ -41,7 +34,7 @@ def naked_twins(values):
 
 def cross(A, B):
     "Cross product of elements in A and elements in B."
-    return [a+b for a in A for b in B]
+    return [A_elem+B_elem for A_elem in A for B_elem in B]
 
 def grid_values(grid):
     """
@@ -53,7 +46,7 @@ def grid_values(grid):
             Keys: The boxes, e.g., 'A1'
             Values: The value in each box, e.g., '8'. If the box has no value, then the value will be '123456789'.
     """
-    for
+    return {row+column: '123456789' if grid[c + r * (lenght_side-1)] == '.' else grid[c + r * (lenght_side-1)] for r, row in enumerate(rows) for c, column in enumerate(cols)}
 
 def display(values):
     """
@@ -61,7 +54,20 @@ def display(values):
     Args:
         values(dict): The sudoku in dictionary form
     """
-    pass
+    line = '\n' + ('-' * 11 * 3 + '+')*3 + '\n'
+    for r, row in enumerate(rows):
+        for c, column in enumerate(cols):
+            if c % 3 == 0:
+                line += ' | '
+            vals = values[row+column]
+            line += ' ' + ' '*(9-len(vals)) + vals
+        if (r+1) % 3 == 0:
+            line += ' |\n' + ('-' * 11 * 3 + '+')*3 + '\n'
+        else:
+            line += ' |\n'
+
+    print(line)
+    return None
 
 def eliminate(values):
     pass
@@ -85,8 +91,19 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
 
+    squares = cross(rows, cols)
+    unitlist = ([cross(rows, c) for c in cols] +
+                [cross(r, cols) for r in rows] +
+                [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')])
+    units = dict((s, [u for u in unitlist if s in u])
+                 for s in squares)
+    peers = dict((s, set(sum(units[s], [])) - set([s]))
+                 for s in squares)
+
+
 if __name__ == '__main__':
     diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    display(grid_values(diag_sudoku_grid))
     display(solve(diag_sudoku_grid))
 
     try:
