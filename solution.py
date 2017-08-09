@@ -5,7 +5,18 @@ rows = 'ABCDEFGHI'
 cols = digits
 lenght_side = len(cols)
 
-unitlist = []
+def cross(A, B):
+    "Cross product of elements in A and elements in B."
+    return [A_elem+B_elem for A_elem in A for B_elem in B]
+
+squares = cross(rows, cols)
+unitlist = ([cross(rows, c) for c in cols] +
+            [cross(r, cols) for r in rows] +
+            [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')])
+units = dict((s, [u for u in unitlist if s in u])
+             for s in squares)
+peers = dict((s, set(sum(units[s], [])) - set([s]))
+             for s in squares)
 
 def assign_value(values, box, value):
     """
@@ -34,9 +45,18 @@ def naked_twins(values):
     # Find all instances of naked twins
     # Eliminate the naked twins as possibilities for their peers
 
-def cross(A, B):
-    "Cross product of elements in A and elements in B."
-    return [A_elem+B_elem for A_elem in A for B_elem in B]
+    for unit in unitlist:
+        possible_twins = [values[square] for square in unit if len(values[square])==2]
+        if len(possible_twins) > 1:
+            for candidate in set(possible_twins):
+                if len([twins for twins in possible_twins if twins==candidate]) == 2:
+                    for square in unit:
+                        if values[square]!= candidate and [element for element in values[square] if element in candidate]:
+                            print("Cleaning naked twins", candidate, "from", square, ":", values[square], end=' >>> ')
+                            values[square] = ''.join([key for key in values[square] if key not in candidate])
+                            print(values[square])
+
+    return values
 
 def grid_values(grid):
     """
@@ -80,6 +100,7 @@ def eliminate(values):
     Returns:
 
     """
+
     for square in squares:
         if len(values[square])==1:
             print("Eliminating",values[square],"found in",square)
@@ -106,10 +127,16 @@ def only_choice(values):
                 print (digit, "is the only choice for", square, 'in', unit)
                 values = assign_value(values, square, digit)
 
-    return values
+        return values
 
 def reduce_puzzle(values):
-    pass
+
+    working = True
+
+    while working:
+        initial_values = values.copy()
+        # Constrained programming
+        working = working & ((initial_values!=eliminate(values)) | (initial_values!=only_choice(values)) | (initial_values!=naked_twins(values)))
 
 def search(values):
     pass
@@ -124,26 +151,10 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
 
-    global squares
-    global unitlist
-    global units
-    global peers
-
-    squares = cross(rows, cols)
-    unitlist = ([cross(rows, c) for c in cols] +
-                [cross(r, cols) for r in rows] +
-                [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')])
-    units = dict((s, [u for u in unitlist if s in u])
-                 for s in squares)
-    peers = dict((s, set(sum(units[s], [])) - set([s]))
-                 for s in squares)
-
     values = grid_values(diag_sudoku_grid)
     display(values)
 
-    # Constrained programming
-    eliminate(values)
-    only_choice(values)
+    reduce_puzzle(values)
 
     return values
 
