@@ -5,6 +5,8 @@ rows = 'ABCDEFGHI'
 cols = digits
 lenght_side = len(cols)
 
+unitlist = []
+
 def assign_value(values, box, value):
     """
     Please use this function to update your values dictionary!
@@ -70,10 +72,40 @@ def display(values):
     return None
 
 def eliminate(values):
-    pass
+    """
+
+    Args:
+        values:
+
+    Returns:
+
+    """
+    for square in squares:
+        if len(values[square])==1:
+            print("Eliminating",values[square],"found in",square)
+            for peer in peers[square]:
+                values[peer] = ''.join([key for key in values[peer] if key!=values[square]])
+
+    return values
 
 def only_choice(values):
-    pass
+    """
+
+    Args:
+        values:
+
+    Returns:
+
+    """
+    for digit in digits:
+        for unit in unitlist:
+            span = [square for square in unit if digit in values[square]]
+            if len(span) == 1:
+                print (digit, "is the only choice for", unit)
+                square = span[0]
+                values = assign_value(values, square, digit)
+
+    return values
 
 def reduce_puzzle(values):
     pass
@@ -91,6 +123,11 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
 
+    global squares
+    global unitlist
+    global units
+    global peers
+
     squares = cross(rows, cols)
     unitlist = ([cross(rows, c) for c in cols] +
                 [cross(r, cols) for r in rows] +
@@ -104,14 +141,8 @@ def solve(grid):
     display(values)
 
     # Constrained programming
-
-    for r, row in enumerate(rows):
-        for c, column in enumerate(cols):
-            cell = row+column
-            if len(values[cell])==1:
-                print ("Eliminating",values[cell],"found in",cell)
-                for peer in peers[cell]:
-                    values[peer] = ''.join([key for key in values[peer] if key!=values[cell]])
+    eliminate(values)
+    only_choice(values)
 
     return values
 
