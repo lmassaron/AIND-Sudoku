@@ -84,7 +84,8 @@ def eliminate(values):
         if len(values[square])==1:
             print("Eliminating",values[square],"found in",square)
             for peer in peers[square]:
-                values[peer] = ''.join([key for key in values[peer] if key!=values[square]])
+                if values[peer] != values[square]:
+                    values[peer] = ''.join([key for key in values[peer] if key!=values[square]])
 
     return values
 
@@ -100,9 +101,9 @@ def only_choice(values):
     for digit in digits:
         for unit in unitlist:
             span = [square for square in unit if digit in values[square]]
-            if len(span) == 1:
-                print (digit, "is the only choice for", unit)
-                square = span[0]
+            square = span[0]
+            if len(span) == 1 and len(values[square])>1:
+                print (digit, "is the only choice for", square, 'in', unit)
                 values = assign_value(values, square, digit)
 
     return values
