@@ -1,8 +1,4 @@
-#https://www.technologyreview.com/s/608573/andrew-ngs-next-trick-training-a-million-ai-experts/?utm_content=buffer13941&utm_medium=social&utm_source=linkedin.com&utm_campaign=buffer
-#https://www.oreilly.com/ideas/why-artificial-intelligence-is-different-from-previous-technology-waves
-#https://www.technologyreview.com/s/608324/china-plans-to-use-artificial-intelligence-to-gain-global-economic-dominance-by-2030/
-
-assignments = []
+assignments = [] # This records all the board assignments
 solve_diagonal = True
 
 digits = '123456789'
@@ -11,10 +7,31 @@ cols = digits
 lenght_side = len(cols)
 
 def cross(A, B):
-    "Cross product of elements in A and elements in B."
+    """
+    Cross product of elements in A and elements in B.
+    
+    Args:
+        A: a list of string elements
+        B: a list of string elements
+
+    Returns:
+        a list of concatenated A and B elements
+
+    """
     return [A_elem+B_elem for A_elem in A for B_elem in B]
 
 def adding_diagonal_units(considered_units):
+    """
+    
+    Args:
+        considered_units: the actual units list
+
+    Returns:
+        it updates the unit list, which contains the list of
+        cell where to apply constraints, by adding the two main
+        diagonals of the board
+
+    """
     diagonal_left = [[rows[i] + cols[i] for i in range(len(rows))]]
     diagonal_right = [[rows[i] + cols[::-1][i] for i in range(len(rows))]]
     return considered_units + diagonal_left + diagonal_right
@@ -35,7 +52,7 @@ peers = dict((s, set(sum(units[s], [])) - set([s]))
 
 def assign_value(values, box, value):
     """
-    Please use this function to update your values dictionary!
+   This function has to be used to update the values dictionary.
     Assigns a value to a given box. If it updates the board record it.
     """
 
@@ -46,32 +63,6 @@ def assign_value(values, box, value):
     values[box] = value
     if len(value) == 1:
         assignments.append(values.copy())
-    return values
-
-
-def naked_twins(values):
-    """Eliminate values using the naked twins strategy.
-    Args:
-        values(dict): a dictionary of the form {'box_name': '123456789', ...}
-
-    Returns:
-        the values dictionary with the naked twins eliminated from peers.
-    """
-
-    # Find all instances of naked twins
-    # Eliminate the naked twins as possibilities for their peers
-
-    for unit in unitlist:
-        possible_twins = [values[square] for square in unit if len(values[square])==2]
-        if len(possible_twins) > 1:
-            for candidate in set(possible_twins):
-                if len([twins for twins in possible_twins if twins==candidate]) == 2:
-                    for square in unit:
-                        if len(values[square])>1 and values[square]!= candidate and len([element for element in values[square] if element in candidate]) > 0:
-                            #print("Cleaning naked twins", candidate, "from", square, ":", values[square], end=' >>> ')
-                            values[square] = ''.join([key for key in values[square] if key not in candidate])
-                            #print(values[square])
-
     return values
 
 
@@ -114,11 +105,14 @@ def display(values):
 
 def eliminate(values):
     """
+    Pruning values using the eliminating strategy
 
     Args:
-        values:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values
 
     Returns:
+        values(dict) updated by the eliminate strategy
 
     """
 
@@ -134,11 +128,14 @@ def eliminate(values):
 
 def only_choice(values):
     """
-
+    Pruning values using the only choice strategy
+    
     Args:
-        values:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values
 
     Returns:
+        values(dict) updated by the only choice strategy
 
     """
     for digit in digits:
@@ -153,7 +150,45 @@ def only_choice(values):
     return values
 
 
+def naked_twins(values):
+    """
+    Pruning values using the naked twins strategy:
+        * Find all instances of naked twins
+        * Eliminate the naked twins as possibilities for their peers
+    
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values
+
+    Returns:
+        values(dict) updated by the naked twins strategy
+    """
+
+    for unit in unitlist:
+        possible_twins = [values[square] for square in unit if len(values[square])==2]
+        if len(possible_twins) > 1:
+            for candidate in set(possible_twins):
+                if len([twins for twins in possible_twins if twins==candidate]) == 2:
+                    for square in unit:
+                        if len(values[square])>1 and values[square]!= candidate and len([element for element in values[square] if element in candidate]) > 0:
+                            #print("Cleaning naked twins", candidate, "from", square, ":", values[square], end=' >>> ')
+                            values[square] = ''.join([key for key in values[square] if key not in candidate])
+                            #print(values[square])
+
+    return values
+
+
 def check_valid(values):
+    """
+    
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values: 
+
+    Returns:
+        a boolean revealing if the board is a valid one or not
+
+    """
     valid = True
     for unit in unitlist:
         assigned = [values[square] for square in unit if len(values[square])==1]
@@ -164,7 +199,17 @@ def check_valid(values):
 
 
 def reduce_puzzle(values):
+    """
+    Applying multiple strategies in series.
+    
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values: 
 
+    Returns:
+        values(dict) updated by the applications of the startegies
+
+    """
     working = True
 
     while working:
@@ -189,10 +234,24 @@ def reduce_puzzle(values):
 
     return values
 
-def search(values):
-    "Using depth-first search and propagation, create a search tree and solve the sudoku."
-    # First, reduce the puzzle using the previous function
 
+def search(values):
+
+    """
+    Using depth-first search and propagation, create a search tree on a simplified board
+    (thanks to the application of reduction strategies) and it solves the sudoku (if possible).
+    
+    Args:
+        values(dict): a dictionary of the form {'box_name': '123456789', ...} 
+        containing up so far constrained opportunities for square values: 
+
+    Returns:
+        a solution in the form of values(dict) or a False boolean flag
+
+    """
+
+    ""
+    # At first, reducing the puzzle using the previous function
     values = reduce_puzzle(values)
 
     if not values:
