@@ -3,11 +3,13 @@
 
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
-A: *Student should provide answer here*
+
+A: In the reduction phase, we apply another reduction to units, after elimination and only choice. As a consequence of this furthermore reduciton, possible values on unit of rows, columns and boxes have values eliminated when naked twins are present.
 
 # Question 2 (Diagonal Sudoku)
-Q: How do we use constraint propagation to solve the diagonal sudoku problem?  
-A: *Student should provide answer here*
+Q: How do we use constraint propagation to solve the diagonal sudoku problem?
+  
+A: Since constraints are applied to units, we add other two units (after rows, columns and boxes) representing the main diagonals of the the board. After enlarging the units, also the peers are updated and constrain propagation will work also on the new units.
 
 ### Install
 
