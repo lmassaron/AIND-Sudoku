@@ -32,17 +32,15 @@ def adding_diagonal_units(considered_units):
         diagonals of the board
 
     """
-    diagonal_left = [[rows[i] + cols[i] for i in range(len(rows))]]
-    diagonal_right = [[rows[i] + cols[::-1][i] for i in range(len(rows))]]
-    return considered_units + diagonal_left + diagonal_right
+    diagonals = [[r+c for r, c in zip(rows, cols)], [r+c for r, c in zip(rows, cols[::-1])]]
+    return considered_units + diagonals
 
 squares = cross(rows, cols)
 unitlist = ([cross(rows, c) for c in cols] +
             [cross(r, cols) for r in rows] +
             [cross(rs, cs) for rs in ('ABC', 'DEF', 'GHI') for cs in ('123', '456', '789')])
 
-if solve_diagonal:
-    unitlist = adding_diagonal_units(unitlist)
+unitlist = adding_diagonal_units(unitlist)
 
 units = dict((s, [u for u in unitlist if s in u])
              for s in squares)
@@ -118,11 +116,10 @@ def eliminate(values):
 
     for square in squares:
         if len(values[square])==1:
+            solution_value = values[square]
             #print("Eliminating",values[square],"found in",square)
             for peer in peers[square]:
-                if values[peer] != values[square]:
-                    values[peer] = ''.join([key for key in values[peer] if key!=values[square]])
-
+                values = assign_value(values, peer, values[peer].replace(solution_value,''))
     return values
 
 
@@ -138,6 +135,7 @@ def only_choice(values):
         values(dict) updated by the only choice strategy
 
     """
+
     for digit in digits:
         for unit in unitlist:
             span = [square for square in unit if digit in values[square]]
@@ -210,30 +208,22 @@ def reduce_puzzle(values):
         values(dict) updated by the applications of the startegies
 
     """
-    working = True
 
-    while working:
-        initial_values = values.copy()
-        # Constrained programming
+    solved_values = [box for box in values.keys() if len(values[box]) == 1]
+    stalled = False
+    while not stalled:
+        solved_values_before = len([box for box in values.keys() if len(values[box]) == 1])
         values = eliminate(values)
-        if not check_valid(values):
-            print ("Eliminate problem")
-            display(values)
-
         values = only_choice(values)
-        if not check_valid(values):
-            print ("Only choice problem")
-            display(values)
-
         values = naked_twins(values)
-        if not check_valid(values):
-            print ("Naked twins problem")
-            display(values)
 
-        working = initial_values!=values
+        solved_values_after = len([box for box in values.keys() if len(values[box]) == 1])
 
+        stalled = (solved_values_before == solved_values_after)
+
+        if len([box for box in values.keys() if len(values[box]) == 0]):
+            return False
     return values
-
 
 def search(values):
 
@@ -250,20 +240,14 @@ def search(values):
 
     """
 
-    ""
     # At first, reducing the puzzle using the previous function
     values = reduce_puzzle(values)
 
     if not values:
-        return False
+        return False ## It points out that it failed earlier
 
     if all(len(values[s]) == 1 for s in squares):
-        print("\nFinal conformity check: ", check_valid(values))
-        for unit in unitlist:
-            if len({values[square] for square in unit}) != 9:
-                print("Problems in", unit)
-
-        return values  ## Solved!
+        return values  ## This is solved!
 
     no_options, square = min([(len(values[square]), square) for square in squares if len(values[square]) > 1])
 
@@ -272,12 +256,9 @@ def search(values):
         replica = values.copy()
         replica[square] = value
 
-        if check_valid(replica):
-            attempt = search(replica)
-            if attempt:  # If this branch won't lead to any valid results, it won't be returned
-                return attempt
-
-
+        attempt = search(replica)
+        if attempt:  # If this branch won't lead to any valid results, it won't be returned
+            return attempt
 
 def solve(grid):
     """
@@ -289,16 +270,25 @@ def solve(grid):
         The dictionary representation of the final sudoku grid. False if no solution exists.
     """
 
-    values = grid_values(diag_sudoku_grid)
+    values = grid_values(grid)
     print("\nInitial conformity check: ", check_valid(values))
     print("Initial state of the grid:")
     display(values)
-    return search(values)
+
+    solution = search(values)
+    print("\nFinal conformity check: ", check_valid(values))
+
+    for unit in unitlist:
+        set_values = {solution[square] for square in unit}
+        if len(set_values) != 9:
+            print("Problems in", unit, set_values)
+
+    return solution
 
 
 if __name__ == '__main__':
 
-    diag_sudoku_grid = '2.............62....1....7...6..8...3...9...7...6..4...4....8....52.............3'
+    diag_sudoku_grid = '9.1....8.8.5.7..4.2.4....6...7......5..............83.3..6......9................'
     display(solve(diag_sudoku_grid))
 
     try:
