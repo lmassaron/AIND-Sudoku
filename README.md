@@ -4,12 +4,24 @@
 # Question 1 (Naked Twins)
 Q: How do we use constraint propagation to solve the naked twins problem?  
 
-A: In the reduction phase, we apply another reduction to units, after elimination and only choice. As a consequence of this furthermore reduciton, possible values on unit of rows, columns and boxes have values eliminated when naked twins are present.
+A: In the reduction phase, when we try to exclude that certain cells cannot take certain numbers in the final solution, we apply another rule of exclusion, after elimination and only choice, based on the naked twins strategy.
+
+Naked Twins (also known as a Conjugate Pair) are a set of two candidate numbers sited in two cells that reside in the same row, column or box. Clearly in this situation, the solution will contain those values in those two cells (one in one, the other in the other), and all other candidates with those numbers can be safely removed from the row, column or box they have in common.
+
+As a consequence of this furthermore reduction, possible values on unit of rows, columns and boxes have values eliminated when naked twins are present, simplifying the subsequent search process, which is described in more detail the following second question.
 
 # Question 2 (Diagonal Sudoku)
 Q: How do we use constraint propagation to solve the diagonal sudoku problem?
   
-A: Since constraints are applied to units, we add other two units (after rows, columns and boxes) representing the main diagonals of the the board. After enlarging the units, also the peers are updated and constrain propagation will work also on the new units.
+A: Even if elimination, only choice and naked twins are strategies that can reduce the complexity in board (by reducing the numbers that a square can actually take) they will seldom simply solve the game for you. 
+
+You need to search among the possible solutions until you find one. In order to do so you use constrained search (search is used throughout AI from Game-Playing to Route Planning to efficiently find solutions), a search that takes into account the limitations in the numbers that a cell can take based on the situation of the other cells.
+
+Simple search just systematically tries all possible solutions on a board until it hits one that works. Actually that is not guaranteed to be fast, instead it might take forever to run: there are 4.62838344192 × 10^38 potential solutions (not certainly all correct one) for the whole puzzle. Constrained search doesn't try anything, it starts trying a possible solution by deciding on a cell's value and if that doesn't work it learns to exclude all other possible configurations that contain the cell's value that doesn't work. A value doesn't work if it breaks any of the limitations we mentioned above. 
+
+This means that of all the possible solutions, a constrained search will quickly find only those which satisfy fully the constraints we imposed. By default we impose the constraints required by the game by ordering to the search not repeating the same number on any row, column or squares in the board. 
+
+In the same fashion we can require that numbers won't be repeated also on the diagonalas. Thus, we add other two constraints (after rows, columns and squares) representing the main diagonals of the the board and start the search. That will suffice to find a valid solution that respects the diagonal sudoku problem.
 
 ### Install
 
